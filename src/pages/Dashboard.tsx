@@ -1,5 +1,5 @@
-import React from 'react';
-import { Grid, Paper, Typography, Box, Card, CardContent, useTheme } from '@mui/material';
+
+import { Grid, Paper, Typography, Box, Card, CardContent } from '@mui/material';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,7 +35,6 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
-  const theme = useTheme();
 
   // Enhanced chart data with gradient effects
   const bookingData = {
@@ -218,7 +217,7 @@ const Dashboard = () => {
       
       <Grid container spacing={3}>
         {/* Stats Cards */}
-        {stats.map((stat, index) => (
+        {stats.map((stat) => (
           <Grid item xs={12} sm={6} lg={3} key={stat.title}>
             <Card
               sx={{

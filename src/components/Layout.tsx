@@ -22,7 +22,7 @@ import {
   Assessment as ReportsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import LogoutComponent from './logout'; // Import the logout component
+import ProfileMenu from './ProfileMenu.tsx'; // Import your ProfileMenu component
 
 const drawerWidth = 280;
 
@@ -53,6 +53,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (isMobile) {
       setMobileOpen(false);
     }
+  };
+
+  const handleLogout = () => {
+    // Custom logout logic
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    navigate('/login');
   };
 
   const drawer = (
@@ -122,13 +129,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </ListItem>
         ))}
       </List>
-
-      <Divider sx={{ borderColor: 'rgba(0, 230, 118, 0.2)', mb: 2 }} />
-
-      {/* Logout Component */}
-      <Box sx={{ px: 1, pb: 2 }}>
-        <LogoutComponent />
-      </Box>
     </Box>
   );
 
@@ -155,9 +155,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Turf Management System
           </Typography>
+          
+          {/* Profile Menu in AppBar */}
+          <ProfileMenu onLogout={handleLogout} />
         </Toolbar>
       </AppBar>
 
