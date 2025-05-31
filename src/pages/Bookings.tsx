@@ -53,7 +53,7 @@ const Bookings: React.FC = () => {
     // Add more sample bookings as needed
   ];
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 

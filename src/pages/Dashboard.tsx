@@ -1,4 +1,3 @@
-import React from 'react';
 import { Grid, Paper, Typography, Box } from '@mui/material';
 import {
   Chart as ChartJS,
