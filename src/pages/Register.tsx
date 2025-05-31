@@ -13,8 +13,10 @@ import {
   Select,
   FormControl,
   InputLabel,
+  IconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -32,10 +34,49 @@ const Register: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name as string]: value
-    }));
+    
+    if (name === 'turfLocation') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value as string,
+        name: `${prev.name} - ${value}`
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name as string]: value
+      }));
+    }
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          // Using reverse geocoding to get address from coordinates
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+            .then(response => response.json())
+            .then(data => {
+              const location = data.display_name;
+              setFormData(prev => ({
+                ...prev,
+                turfLocation: location
+              }));
+            })
+            .catch(err => {
+              setError('Failed to get location details. Please try again.');
+              console.error('Geocoding error:', err);
+            });
+        },
+        (error) => {
+          setError('Failed to get your location. Please enable location services.');
+          console.error('Geolocation error:', error);
+        }
+      );
+    } else {
+      setError('Geolocation is not supported by your browser.');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,16 +182,29 @@ const Register: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="turfLocation"
-                  label="Turf Location"
-                  name="turfLocation"
-                  value={formData.turfLocation}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="turfLocation"
+                    label="Turf Location"
+                    name="turfLocation"
+                    value={formData.turfLocation}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+                  <IconButton 
+                    onClick={getCurrentLocation}
+                    disabled={loading}
+                    sx={{ 
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'primary.dark' }
+                    }}
+                  >
+                    <LocationOnIcon />
+                  </IconButton>
+                </Box>
               </Grid>
               <Grid item xs={12}>
                 <FormControl fullWidth required>
