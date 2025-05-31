@@ -9,50 +9,62 @@ import {
   Link,
   Alert,
   Grid,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    phoneNumber: '',
+    name: '',
+    turfLocation: '',
+    sports: [] as string[],
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const availableSports = ['Football', 'Cricket', 'Basketball', 'Tennis', 'Volleyball'];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name as string]: value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    // Here you would typically make an API call to register
     try {
-      // Simulate API call
-      if (formData.email && formData.password) {
-        // On successful registration
+      const response = await fetch('https://turf-backend-7yqk.onrender.com/turf-owner/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Registration successful
         navigate('/login');
       } else {
-        setError('Please fill in all required fields');
+        setError(data.message || 'Registration failed. Please try again.');
       }
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError('An error occurred. Please try again.');
+      console.error('Registration error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,28 +100,17 @@ const Register: React.FC = () => {
 
           <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
-                  id="firstName"
-                  label="First Name"
-                  name="firstName"
-                  autoComplete="given-name"
-                  value={formData.firstName}
+                  id="name"
+                  label="Full Name"
+                  name="name"
+                  autoComplete="name"
+                  value={formData.name}
                   onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
-                  autoComplete="family-name"
-                  value={formData.lastName}
-                  onChange={handleChange}
+                  disabled={loading}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -122,18 +123,7 @@ const Register: React.FC = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="phoneNumber"
-                  label="Phone Number"
-                  name="phoneNumber"
-                  autoComplete="tel"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
+                  disabled={loading}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -147,19 +137,41 @@ const Register: React.FC = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
-                  name="confirmPassword"
-                  label="Confirm Password"
-                  type="password"
-                  id="confirmPassword"
-                  value={formData.confirmPassword}
+                  id="turfLocation"
+                  label="Turf Location"
+                  name="turfLocation"
+                  value={formData.turfLocation}
                   onChange={handleChange}
+                  disabled={loading}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel id="sports-label">Sports</InputLabel>
+                  <Select
+                    labelId="sports-label"
+                    id="sports"
+                    name="sports"
+                    multiple
+                    value={formData.sports}
+                    onChange={(e) => handleChange(e as any)}
+                    label="Sports"
+                    disabled={loading}
+                  >
+                    {availableSports.map((sport) => (
+                      <MenuItem key={sport} value={sport}>
+                        {sport}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
             <Button
@@ -167,14 +179,16 @@ const Register: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign Up
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link
                 component="button"
                 variant="body2"
                 onClick={() => navigate('/login')}
+                disabled={loading}
               >
                 Already have an account? Sign In
               </Link>
