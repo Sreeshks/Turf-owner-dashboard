@@ -8,12 +8,12 @@ import TurfManagement from './pages/TurfManagement';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#2E7D32', // Green shade for turf theme
+      main: '#2E7D32', 
     },
     secondary: {
       main: '#1B5E20',
@@ -21,9 +21,20 @@ const theme = createTheme({
   },
 });
 
-// Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated] = useState(false); // Replace with actual auth state management
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+   
+    const token = localStorage.getItem('authToken');
+    setIsAuthenticated(!!token);
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return null; 
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
@@ -45,6 +56,16 @@ function App() {
           {/* Protected Routes */}
           <Route
             path="/"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Layout>

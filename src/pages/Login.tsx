@@ -18,6 +18,7 @@ const Login: React.FC = () => {
     password: '',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,18 +31,34 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    // Here you would typically make an API call to authenticate
     try {
-      // Simulate API call
-      if (formData.email && formData.password) {
-        // On successful login
+      const response = await fetch('https://turf-backend-7yqk.onrender.com/turf-owner/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), 
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store the token and user data
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        
+        // Redirect to dashboard
         navigate('/dashboard');
       } else {
-        setError('Please fill in all fields');
+        setError(data.message || 'Invalid email or password');
       }
     } catch (err) {
-      setError('Invalid email or password');
+      setError('An error occurred. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,6 +104,7 @@ const Login: React.FC = () => {
               autoFocus
               value={formData.email}
               onChange={handleChange}
+              disabled={loading}
             />
             <TextField
               margin="normal"
@@ -99,20 +117,23 @@ const Login: React.FC = () => {
               autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
+              disabled={loading}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign In
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link
                 component="button"
                 variant="body2"
                 onClick={() => navigate('/register')}
+                disabled={loading}
               >
                 Don't have an account? Sign Up
               </Link>
