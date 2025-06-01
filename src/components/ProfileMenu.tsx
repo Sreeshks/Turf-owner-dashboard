@@ -99,6 +99,11 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onLogout }) => {
     handleClose();
   };
 
+  const handleNotificationsClick = () => {
+    navigate('/notifications');
+    handleClose();
+  };
+
   const handleLogout = () => {
     handleClose();
     if (onLogout) {
@@ -267,6 +272,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onLogout }) => {
         </MenuItem>
 
         <MenuItem
+          onClick={handleNotificationsClick}
           sx={{
             py: 1.5,
             px: 3,
