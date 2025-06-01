@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   IconButton,
   Menu,
@@ -9,6 +9,7 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
+  CircularProgress,
 } from '@mui/material';
 import {
   AccountCircle,
@@ -23,18 +24,62 @@ interface ProfileMenuProps {
   onLogout?: () => void;
 }
 
+interface UserProfile {
+  name: string;
+  email: string;
+  turfLocation: string;
+  sports: string[];
+}
+
 const ProfileMenu: React.FC<ProfileMenuProps> = ({ onLogout }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
-  // Sample user data - in real app, this would come from context/state
-  const userData = {
-    name: 'John Smith',
-    email: 'john.smith@turfmanager.com',
-    role: 'Admin',
-    avatar: null, // Will show initials if no avatar
-  };
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const storedUserData = localStorage.getItem('userData');
+        if (!storedUserData) {
+          setError('No user data found. Please login again.');
+          return;
+        }
+
+        let parsedUserData;
+        try {
+          parsedUserData = JSON.parse(storedUserData);
+        } catch (parseError) {
+          console.error('Error parsing user data:', parseError);
+          setError('Invalid user data. Please login again.');
+          return;
+        }
+
+        if (!parsedUserData.email) {
+          setError('Email not found in user data. Please login again.');
+          return;
+        }
+
+        setLoading(true);
+        const response = await fetch(`https://turf-backend-7yqk.onrender.com/turf-owner/profile/${parsedUserData.email}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+        } else {
+          setError('Failed to fetch profile data');
+        }
+      } catch (err) {
+        setError('Error fetching profile data');
+        console.error('Profile fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -59,7 +104,6 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onLogout }) => {
     if (onLogout) {
       onLogout();
     } else {
-      // Default logout behavior
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
       navigate('/login');
@@ -101,9 +145,8 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onLogout }) => {
             fontSize: '1rem',
             fontWeight: 'bold',
           }}
-          src={userData.avatar || undefined}
         >
-          {!userData.avatar && getInitials(userData.name)}
+          {userData ? getInitials(userData.name) : '?'}
         </Avatar>
       </IconButton>
 
@@ -144,43 +187,46 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onLogout }) => {
       >
         {/* User Info Header */}
         <Box sx={{ px: 3, py: 2, borderBottom: '1px solid rgba(0, 230, 118, 0.2)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Avatar
-              sx={{
-                width: 50,
-                height: 50,
-                background: 'linear-gradient(45deg, #00E676, #4CAF50)',
-                mr: 2,
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-              }}
-              src={userData.avatar || undefined}
-            >
-              {!userData.avatar && getInitials(userData.name)}
-            </Avatar>
-            <Box>
-              <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }}>
-                {userData.name}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                {userData.email}
-              </Typography>
-              <Box
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={24} sx={{ color: '#00E676' }} />
+            </Box>
+          ) : error ? (
+            <Typography sx={{ color: '#F44336' }}>{error}</Typography>
+          ) : userData ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Avatar
                 sx={{
-                  display: 'inline-block',
-                  px: 1,
-                  py: 0.5,
-                  background: 'rgba(0, 230, 118, 0.2)',
-                  borderRadius: 1,
-                  mt: 0.5,
+                  width: 50,
+                  height: 50,
+                  background: 'linear-gradient(45deg, #00E676, #4CAF50)',
+                  mr: 2,
+                  fontSize: '1.2rem',
+                  fontWeight: 'bold',
                 }}
               >
-                <Typography variant="caption" sx={{ color: '#00E676', fontWeight: 'bold' }}>
-                  {userData.role}
+                {getInitials(userData.name)}
+              </Avatar>
+              <Box>
+                <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }}>
+                  {userData.name}
                 </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                  {userData.email}
+                </Typography>
+                <Box sx={{ mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Location: {userData.turfLocation}
+                  </Typography>
+                </Box>
+                <Box sx={{ mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Sports: {userData.sports.join(', ')}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
+          ) : null}
         </Box>
 
         {/* Menu Items */}

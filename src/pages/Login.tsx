@@ -47,7 +47,12 @@ const Login: React.FC = () => {
       if (response.ok) {
         // Store the token and user data
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        localStorage.setItem('userData', JSON.stringify({
+          name: data.name,
+          email: data.email,
+          turfLocation: data.turfLocation,
+          sports: data.sports
+        }));
         
         // Redirect to dashboard
         navigate('/dashboard');
