@@ -10,6 +10,7 @@ import {
   Chip,
   Alert,
   CircularProgress,
+  CardMedia,
 } from '@mui/material';
 import { Edit as EditIcon, Save as SaveIcon } from '@mui/icons-material';
 
@@ -18,6 +19,7 @@ interface UserProfile {
   email: string;
   turfLocation: string;
   sports: string[];
+  image?: string; // Add image field to the interface
 }
 
 const Profile: React.FC = () => {
@@ -36,9 +38,31 @@ const Profile: React.FC = () => {
           return;
         }
 
-        const userData = JSON.parse(storedUserData);
-        setProfile(userData);
-        setEditedProfile(userData);
+        let parsedUserData;
+        try {
+          parsedUserData = JSON.parse(storedUserData);
+        } catch (parseError) {
+          console.error('Error parsing user data:', parseError);
+          setError('Invalid user data. Please login again.');
+          return;
+        }
+
+        if (!parsedUserData.email) {
+          setError('Email not found in user data. Please login again.');
+          return;
+        }
+
+        setLoading(true);
+        const response = await fetch(
+          `https://turf-backend-7yqk.onrender.com/turf-owner/profile/${parsedUserData.email}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setProfile(data);
+          setEditedProfile(data);
+        } else {
+          setError('Failed to fetch profile data');
+        }
       } catch (err) {
         setError('Error loading profile data');
         console.error('Profile fetch error:', err);
@@ -148,6 +172,24 @@ const Profile: React.FC = () => {
               <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
                 {profile?.email}
               </Typography>
+              {profile?.image && (
+                <Box sx={{ mt: 2, width: '100%', maxWidth: 200 }}>
+                  <Typography variant="subtitle1" sx={{ color: '#fff', mb: 1 }}>
+                    Turf Image
+                  </Typography>
+                  <CardMedia
+                    component="img"
+                    image={profile.image}
+                    alt="Turf Image"
+                    sx={{
+                      width: '100%',
+                      height: 'auto',
+                      borderRadius: 2,
+                      border: '1px solid rgba(0, 230, 118, 0.3)',
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
           </Grid>
 
@@ -211,4 +253,4 @@ const Profile: React.FC = () => {
   );
 };
 
-export default Profile; 
+export default Profile;
