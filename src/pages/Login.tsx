@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { SparklesCore } from '../components/ui/sparkles/SparklesCore';
+
 import {
   Box,
   Paper,
@@ -45,7 +47,6 @@ const Login: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Store the token and user data
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userData', JSON.stringify({
           name: data.name,
@@ -53,8 +54,6 @@ const Login: React.FC = () => {
           turfLocation: data.turfLocation,
           sports: data.sports
         }));
-        
-        // Redirect to dashboard
         navigate('/dashboard');
       } else {
         setError(data.message || 'Invalid email or password');
@@ -69,14 +68,36 @@ const Login: React.FC = () => {
 
   return (
     <Container component="main" maxWidth="xs">
+      {/* 🔥 Sparkles matching login box width */}
       <Box
         sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          height: 200,
+          position: 'relative',
+          overflow: 'hidden',
+          backgroundColor: 'black',
+          borderRadius: 2,
+          mb: 4,
         }}
       >
+        <SparklesCore
+          background="transparent"
+          minSize={0.4}
+          maxSize={1}
+          particleDensity={1200}
+          className="w-full h-full"
+          particleColor="#FFFFFF"
+        />
+        <div
+          className="absolute inset-0 w-full h-full bg-black"
+          style={{
+            maskImage: 'radial-gradient(400px 200px at top, transparent 10%, black)',
+            WebkitMaskImage: 'radial-gradient(400px 200px at top, transparent 10%, black)',
+          }}
+        />
+      </Box>
+
+      {/* Login Form */}
+      <Box>
         <Paper
           elevation={3}
           sx={{
@@ -84,7 +105,6 @@ const Login: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%',
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
@@ -150,4 +170,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login; 
+export default Login;
