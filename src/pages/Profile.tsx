@@ -33,7 +33,6 @@ interface Turf {
 interface UserProfile {
   name: string;
   email: string;
-  sports: string[];
   turfs?: Turf[];
 }
 
@@ -45,7 +44,6 @@ const Profile: React.FC = () => {
   const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
   const [selectedTurf, setSelectedTurf] = useState<Turf | null>(null);
 
-  // Add Turf Modal State
   const [addTurfOpen, setAddTurfOpen] = useState(false);
   const [newTurf, setNewTurf] = useState<Turf>({
     name: '',
@@ -62,7 +60,6 @@ const Profile: React.FC = () => {
         const data: UserProfile = {
           name: 'Krishnendhu K',
           email: 'krish@example.com',
-          sports: ['Football', 'Cricket'],
           turfs: [
             {
               name: 'Green Field',
@@ -113,7 +110,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Add Turf modal handlers
   const openAddTurf = () => setAddTurfOpen(true);
   const closeAddTurf = () => {
     setAddTurfOpen(false);
@@ -135,7 +131,7 @@ const Profile: React.FC = () => {
       const updatedProfile = { ...editedProfile, turfs: updatedTurfs };
       setEditedProfile(updatedProfile);
       setProfile(updatedProfile);
-      setSelectedTurf(newTurf); // Select newly added turf
+      setSelectedTurf(newTurf);
       closeAddTurf();
     }
   };
@@ -186,7 +182,6 @@ const Profile: React.FC = () => {
         </Box>
 
         <Grid container spacing={4}>
-          {/* Left side: Avatar and basic info */}
           <Grid item xs={12} md={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Avatar
@@ -209,10 +204,8 @@ const Profile: React.FC = () => {
             </Box>
           </Grid>
 
-          {/* Right side: Editable fields and turf list + details */}
           <Grid item xs={12} md={8}>
             <Grid container spacing={3}>
-              {/* Profile editable fields */}
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -228,26 +221,6 @@ const Profile: React.FC = () => {
                 <TextField fullWidth label="Email" name="email" value={editedProfile?.email || ''} disabled sx={{ mb: 2 }} />
               </Grid>
 
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ color: '#fff', mb: 1 }}>
-                  Sports Offered
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {profile?.sports.map((sport) => (
-                    <Chip
-                      key={sport}
-                      label={sport}
-                      sx={{
-                        background: 'rgba(0, 230, 118, 0.1)',
-                        border: '1px solid rgba(0, 230, 118, 0.3)',
-                        color: '#00E676',
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Grid>
-
-              {/* Turf list and details */}
               <Grid item xs={12}>
                 <Box sx={{ mt: 5 }}>
                   <Typography variant="h5" sx={{ color: '#fff', mb: 2 }}>
@@ -295,14 +268,24 @@ const Profile: React.FC = () => {
                         </Typography>
                       )}
                       {selectedTurf.sportsType && (
-                        <Typography sx={{ mt: 1, fontStyle: 'italic', color: 'rgba(0,230,118,0.8)' }}>
-                          Sports Type: {selectedTurf.sportsType}
-                        </Typography>
+                        <>
+                          <Typography variant="subtitle2" sx={{ mt: 2, color: '#00E676' }}>
+                            Sports Offered
+                          </Typography>
+                          <Chip
+                            label={selectedTurf.sportsType}
+                            sx={{
+                              mt: 1,
+                              background: 'rgba(0, 230, 118, 0.1)',
+                              border: '1px solid rgba(0, 230, 118, 0.3)',
+                              color: '#00E676',
+                            }}
+                          />
+                        </>
                       )}
                     </Box>
                   )}
 
-                  {/* Add Turf Button */}
                   <Box sx={{ mt: 4, textAlign: 'center' }}>
                     <Button
                       variant="outlined"
