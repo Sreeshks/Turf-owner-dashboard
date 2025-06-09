@@ -13,79 +13,48 @@ import {
   Select,
   FormControl,
   InputLabel,
-  IconButton,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
-    name: '',
-    turfLocation: '',
-    sports: [] as string[],
+    usertype: '',
   });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const availableSports = ['Football', 'Cricket', 'Basketball', 'Tennis', 'Volleyball'];
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
+  ) => {
     const { name, value } = e.target;
-    
-    if (name === 'turfLocation') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value as string,
-        name: `${prev.name} - ${value}`
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name as string]: value
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name as string]: value,
+    }));
   };
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          // Using reverse geocoding to get address from coordinates
-          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-            .then(response => response.json())
-            .then(data => {
-              const location = data.display_name;
-              setFormData(prev => ({
-                ...prev,
-                turfLocation: location
-              }));
-            })
-            .catch(err => {
-              setError('Failed to get location details. Please try again.');
-              console.error('Geocoding error:', err);
-            });
-        },
-        (error) => {
-          setError('Failed to get your location. Please enable location services.');
-          console.error('Geolocation error:', error);
-        }
-      );
-    } else {
-      setError('Geolocation is not supported by your browser.');
-    }
+  const handleSelectChange = (e: SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
 
     try {
-      const response = await fetch('https://turf-backend-7yqk.onrender.com/turf-owner/register', {
+      const response = await fetch('https://turf-backend-7yqk.onrender.com/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,8 +65,9 @@ const Register: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Registration successful
-        navigate('/login');
+        setSuccessMessage(data.message || 'Registration successful');
+        // Redirect after short delay to let user see the message
+        setTimeout(() => navigate('/login'), 1500);
       } else {
         setError(data.message || 'Registration failed. Please try again.');
       }
@@ -130,12 +100,18 @@ const Register: React.FC = () => {
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Create Turf Owner Account
+            Register User
           </Typography>
 
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {successMessage && (
+            <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+              {successMessage}
             </Alert>
           )}
 
@@ -168,6 +144,25 @@ const Register: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel id="usertype-label">User Type</InputLabel>
+                  <Select
+                    labelId="usertype-label"
+                    id="usertype"
+                    name="usertype"
+                    value={formData.usertype}
+                    onChange={handleSelectChange}
+                    disabled={loading}
+                    label="User Type"
+                  >
+                    <MenuItem value="Admin">Admin</MenuItem>
+                    <MenuItem value="Manager">Manager</MenuItem>
+                    <MenuItem value="Worker">Worker</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
@@ -181,52 +176,6 @@ const Register: React.FC = () => {
                   disabled={loading}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField
-                    required
-                    fullWidth
-                    id="turfLocation"
-                    label="Turf Location"
-                    name="turfLocation"
-                    value={formData.turfLocation}
-                    onChange={handleChange}
-                    disabled={loading}
-                  />
-                  <IconButton 
-                    onClick={getCurrentLocation}
-                    disabled={loading}
-                    sx={{ 
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      '&:hover': { bgcolor: 'primary.dark' }
-                    }}
-                  >
-                    <LocationOnIcon />
-                  </IconButton>
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel id="sports-label">Sports</InputLabel>
-                  <Select
-                    labelId="sports-label"
-                    id="sports"
-                    name="sports"
-                    multiple
-                    value={formData.sports}
-                    onChange={(e) => handleChange(e as any)}
-                    label="Sports"
-                    disabled={loading}
-                  >
-                    {availableSports.map((sport) => (
-                      <MenuItem key={sport} value={sport}>
-                        {sport}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
             </Grid>
             <Button
               type="submit"
@@ -235,7 +184,7 @@ const Register: React.FC = () => {
               sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
-              {loading ? 'Creating Account...' : 'Sign Up'}
+              {loading ? 'Registering...' : 'Register'}
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link
@@ -254,4 +203,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register; 
+export default Register;
