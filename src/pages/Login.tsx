@@ -30,30 +30,68 @@ const Login: React.FC = () => {
     }));
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await fetch('https://turf-backend-7yqk.onrender.com/turf-owner/user/login', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(formData), 
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       localStorage.setItem('authToken', data.token);
+  //       localStorage.setItem('userData', JSON.stringify({
+  //         name: data.name,
+  //         email: data.email,
+  //         turfLocation: data.turfLocation,
+  //         sports: data.sports
+  //       }));
+  //       navigate('/dashboard');
+  //     } else {
+  //       setError(data.message || 'Invalid email or password');
+  //     }
+  //   } catch (err) {
+  //     setError('An error occurred. Please try again.');
+  //     console.error('Login error:', err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('https://turf-backend-7yqk.onrender.com/turf-owner/login', {
+      const response = await fetch('https://turf-backend-7yqk.onrender.com/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), 
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('authToken', data.token);
+        // Store relevant user data in localStorage
         localStorage.setItem('userData', JSON.stringify({
+          _id: data._id,
           name: data.name,
           email: data.email,
-          turfLocation: data.turfLocation,
-          sports: data.sports
+          usertype: data.usertype,
         }));
+
+        // Redirect after successful login
         navigate('/dashboard');
       } else {
         setError(data.message || 'Invalid email or password');
@@ -169,5 +207,5 @@ const Login: React.FC = () => {
     </Container>
   );
 };
-re
+
 export default Login;
