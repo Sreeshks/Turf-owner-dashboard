@@ -31,8 +31,10 @@ interface Turf {
 }
 
 interface UserProfile {
+  _id: string;
   name: string;
   email: string;
+  usertype: string;
   turfs?: Turf[];
 }
 
@@ -56,36 +58,20 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        await new Promise((r) => setTimeout(r, 1000));
-        const data: UserProfile = {
-          name: 'Krishnendhu K',
-          email: 'krish@example.com',
-          turfs: [
-            {
-              name: 'Green Field',
-              image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=500&q=60',
-              details: 'Well maintained turf with night lighting',
-              size: '100x50 meters',
-              sportsType: 'Football',
-            },
-            {
-              name: 'Sunrise Turf',
-              image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=500&q=60',
-              details: 'Spacious turf with great facilities',
-              size: '120x60 meters',
-              sportsType: 'Cricket',
-            },
-          ],
-        };
-        setProfile(data);
-        setEditedProfile(data);
-        setLoading(false);
+        const storedUser = localStorage.getItem('userData');
+        if (storedUser) {
+          const parsedUser: UserProfile = JSON.parse(storedUser);
+          setProfile(parsedUser);
+          setEditedProfile(parsedUser);
+        } else {
+          setError('User not logged in');
+        }
       } catch (err) {
         setError('Failed to load profile');
+      } finally {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, []);
 
@@ -94,12 +80,14 @@ const Profile: React.FC = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      localStorage.setItem('userData', JSON.stringify(editedProfile));
-      setProfile(editedProfile);
-      setIsEditing(false);
-      setLoading(false);
+      if (editedProfile) {
+        localStorage.setItem('userData', JSON.stringify(editedProfile));
+        setProfile(editedProfile);
+        setIsEditing(false);
+      }
     } catch {
       setError('Error saving profile');
+    } finally {
       setLoading(false);
     }
   };
@@ -143,8 +131,6 @@ const Profile: React.FC = () => {
       </Box>
     );
   }
-
-//updTED
 
   return (
     <Box sx={{ p: 3 }}>
@@ -201,6 +187,12 @@ const Profile: React.FC = () => {
               <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
                 {profile?.email}
               </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+                ID: {profile?._id}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+                Role: {profile?.usertype}
+              </Typography>
             </Box>
           </Grid>
 
@@ -218,7 +210,14 @@ const Profile: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField fullWidth label="Email" name="email" value={editedProfile?.email || ''} disabled sx={{ mb: 2 }} />
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  value={editedProfile?.email || ''}
+                  disabled
+                  sx={{ mb: 2 }}
+                />
               </Grid>
 
               <Grid item xs={12}>
