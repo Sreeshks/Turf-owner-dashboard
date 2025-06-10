@@ -162,9 +162,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-   
-    const token = localStorage.getItem('authToken');
-    setIsAuthenticated(!!token);
+    const userData = localStorage.getItem('userData');
+    setIsAuthenticated(!!userData);
     setIsLoading(false);
   }, []);
 

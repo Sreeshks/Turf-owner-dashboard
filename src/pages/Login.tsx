@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SparklesCore } from '../components/ui/sparkles/SparklesCore';
-
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -11,7 +11,7 @@ import {
   Link,
   Alert,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -80,9 +80,14 @@ const Login: React.FC = () => {
         body: JSON.stringify(formData),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
+        console.log("Login successful");
         // Store relevant user data in localStorage
         localStorage.setItem('userData', JSON.stringify({
           _id: data._id,
@@ -91,14 +96,18 @@ const Login: React.FC = () => {
           usertype: data.usertype,
         }));
 
+        console.log("Stored user data:", localStorage.getItem('userData'));
         // Redirect after successful login
-        navigate('/dashboard');
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
       } else {
+        console.log("Login failed:", data.message);
         setError(data.message || 'Invalid email or password');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
       console.error('Login error:', err);
+      setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
