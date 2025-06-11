@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SparklesCore } from '../components/ui/sparkles/SparklesCore';
+// import { SparklesCore } from '../components/ui/sparkles/SparklesCore';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../utils/api';
 import {
@@ -127,14 +127,14 @@ const Login: React.FC = () => {
           mb: 4,
         }}
       >
-        <SparklesCore
+        {/* <SparklesCore
           background="transparent"
           minSize={0.4}
           maxSize={1}
           particleDensity={1200}
           className="w-full h-full"
           particleColor="#FFFFFF"
-        />
+        /> */}
         <div
           className="absolute inset-0 w-full h-full bg-black"
           style={{
