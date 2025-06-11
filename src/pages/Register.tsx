@@ -16,6 +16,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../utils/api';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://turf-backend-7yqk.onrender.com/user/register', {
+      const response = await fetch(`${BASE_URL}/user/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SparklesCore } from '../components/ui/sparkles/SparklesCore';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../utils/api';
 import {
   Box,
   Paper,
@@ -72,7 +73,7 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://turf-backend-7yqk.onrender.com/user/login', {
+      const response = await fetch(`${BASE_URL}/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
