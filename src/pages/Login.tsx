@@ -116,16 +116,9 @@ const Login: React.FC = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      {/* 🔥 Sparkles matching login box width */}
+    
       <Box
-        sx={{
-          height: 200,
-          position: 'relative',
-          overflow: 'hidden',
-          backgroundColor: 'black',
-          borderRadius: 2,
-          mb: 4,
-        }}
+        
       >
         {/* <SparklesCore
           background="transparent"
