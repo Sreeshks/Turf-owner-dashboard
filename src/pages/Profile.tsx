@@ -28,6 +28,7 @@ interface Turf {
   details?: string;
   size?: string;
   sportsType?: string;
+  location?: string;
 }
 
 interface UserProfile {
@@ -53,6 +54,7 @@ const Profile: React.FC = () => {
     details: '',
     size: '',
     sportsType: '',
+    location: '',
   });
 
   useEffect(() => {
@@ -101,26 +103,63 @@ const Profile: React.FC = () => {
   const openAddTurf = () => setAddTurfOpen(true);
   const closeAddTurf = () => {
     setAddTurfOpen(false);
-    setNewTurf({ name: '', image: '', details: '', size: '', sportsType: '' });
+    setNewTurf({ name: '', image: '', details: '', size: '', sportsType: '', location: '' });
   };
 
   const handleNewTurfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTurf({ ...newTurf, [e.target.name]: e.target.value });
   };
 
-  const handleAddTurf = () => {
+  const handleAddTurf = async () => {
     if (!newTurf.name.trim()) {
       alert('Please enter Turf Name.');
       return;
     }
 
-    if (editedProfile) {
-      const updatedTurfs = editedProfile.turfs ? [...editedProfile.turfs, newTurf] : [newTurf];
-      const updatedProfile = { ...editedProfile, turfs: updatedTurfs };
-      setEditedProfile(updatedProfile);
-      setProfile(updatedProfile);
-      setSelectedTurf(newTurf);
-      closeAddTurf();
+    if (!editedProfile?._id) {
+      alert('User ID not found');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch('https://turf-backend-7yqk.onrender.com/turf-owner/addturf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newTurf.name,
+          location: newTurf.location || 'Unknown',
+          sports: newTurf.sportsType
+            ? [newTurf.sportsType.charAt(0).toUpperCase() + newTurf.sportsType.slice(1).toLowerCase()]
+            : [],
+          userid: editedProfile._id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const updatedTurfs = editedProfile.turfs
+          ? [...editedProfile.turfs, newTurf]
+          : [newTurf];
+
+        const updatedProfile = { ...editedProfile, turfs: updatedTurfs };
+        setEditedProfile(updatedProfile);
+        setProfile(updatedProfile);
+        setSelectedTurf(newTurf);
+        closeAddTurf();
+        alert('Turf added successfully!');
+      } else {
+        alert(data.message || 'Failed to add turf');
+      }
+    } catch (error) {
+      console.error('Error adding turf:', error);
+      alert('An error occurred while adding turf.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -312,6 +351,15 @@ const Profile: React.FC = () => {
               fullWidth
               required
               value={newTurf.name}
+              onChange={handleNewTurfChange}
+            />
+            <TextField
+              margin="dense"
+              label="Location"
+              name="location"
+              fullWidth
+              required
+              value={newTurf.location}
               onChange={handleNewTurfChange}
             />
             <TextField

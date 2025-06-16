@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -11,47 +11,43 @@ import {
   TablePagination,
   Typography,
   Chip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
+import axios from 'axios';
 
 interface Booking {
-  id: string;
-  customerName: string;
-  date: string;
-  time: string;
-  turf: string;
-  sport: string;
-  status: 'confirmed' | 'pending' | 'cancelled';
-  amount: number;
+  userid: string;
+  turfId: string;
+  name: string;
+  turfLocation: string;
+  sports: string[];
 }
 
 const Bookings: React.FC = () => {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Sample booking data
-  const bookings: Booking[] = [
-    {
-      id: '1',
-      customerName: 'John Doe',
-      date: '2024-03-20',
-      time: '10:00 AM',
-      turf: 'Football Turf 1',
-      sport: 'Football',
-      status: 'confirmed',
-      amount: 1500,
-    },
-    {
-      id: '2',
-      customerName: 'Jane Smith',
-      date: '2024-03-20',
-      time: '02:00 PM',
-      turf: 'Cricket Turf 1',
-      sport: 'Cricket',
-      status: 'pending',
-      amount: 2000,
-    },
-    // Add more sample bookings as needed
-  ];
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await axios.get(
+          'https://turf-backend-7yqk.onrender.com/user/GetAllbooking'
+        );
+        setBookings(response.data);
+        setLoading(false);
+      } catch (err: any) {
+        console.error(err);
+        setError('Failed to fetch bookings');
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -62,75 +58,60 @@ const Bookings: React.FC = () => {
     setPage(0);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'cancelled':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
         Bookings
       </Typography>
-      <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Customer</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell>Turf</TableCell>
-                <TableCell>Sport</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Amount</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {bookings
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell>{booking.id}</TableCell>
-                    <TableCell>{booking.customerName}</TableCell>
-                    <TableCell>{booking.date}</TableCell>
-                    <TableCell>{booking.time}</TableCell>
-                    <TableCell>{booking.turf}</TableCell>
-                    <TableCell>{booking.sport}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={booking.status}
-                        color={getStatusColor(booking.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>₹{booking.amount}</TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={bookings.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+      {loading ? (
+        <CircularProgress />
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : (
+        <Paper>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>User ID</TableCell>
+                  <TableCell>Turf ID</TableCell>
+                  <TableCell>Turf Name</TableCell>
+                  <TableCell>Location</TableCell>
+                  <TableCell>Sports</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bookings
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((booking, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{booking.userid}</TableCell>
+                      <TableCell>{booking.turfId}</TableCell>
+                      <TableCell>{booking.name}</TableCell>
+                      <TableCell>{booking.turfLocation}</TableCell>
+                      <TableCell>
+                        {booking.sports.map((sport, i) => (
+                          <Chip key={i} label={sport} size="small" sx={{ mr: 0.5 }} />
+                        ))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={bookings.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      )}
     </Box>
   );
 };
 
-export default Bookings; 
+export default Bookings;

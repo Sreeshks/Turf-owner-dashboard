@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -13,74 +13,106 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  MenuItem,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
+import axios from 'axios';
 
 interface Turf {
-  id: string;
+  turfId: string;
+  userid: string;
   name: string;
-  type: string;
-  status: 'active' | 'maintenance' | 'inactive';
-  capacity: number;
-  price: number;
+  turfLocation: string;
+  sports: string[];
 }
 
 const TurfManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTurf, setSelectedTurf] = useState<Turf | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    turfLocation: '',
+    sports: ['Football'],
+  });
+  const [turfs, setTurfs] = useState<Turf[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Sample turf data
-  const turfs: Turf[] = [
-    {
-      id: '1',
-      name: 'Football Turf 1',
-      type: 'Football',
-      status: 'active',
-      capacity: 10,
-      price: 1500,
-    },
-    {
-      id: '2',
-      name: 'Cricket Turf 1',
-      type: 'Cricket',
-      status: 'maintenance',
-      capacity: 22,
-      price: 2000,
-    },
-    {
-      id: '3',
-      name: 'Football Turf 2',
-      type: 'Football',
-      status: 'active',
-      capacity: 10,
-      price: 1500,
-    },
-  ];
+  const fetchTurfs = async () => {
+    try {
+      const response = await axios.get(
+        'https://turf-backend-7yqk.onrender.com/turf-owner/getallturfs'
+      );
+      setTurfs(response.data);
+    } catch (error) {
+      console.error('Failed to fetch turfs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTurfs();
+  }, []);
 
   const handleOpenDialog = (turf?: Turf) => {
-    setSelectedTurf(turf || null);
+    if (turf) {
+      setSelectedTurf(turf);
+      setFormData({
+        name: turf.name,
+        turfLocation: turf.turfLocation,
+        sports: turf.sports,
+      });
+    } else {
+      setSelectedTurf(null);
+      setFormData({
+        name: '',
+        turfLocation: '',
+        sports: ['Football'],
+      });
+    }
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedTurf(null);
+    setSuccessMessage('');
+    setErrorMessage('');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'success';
-      case 'maintenance':
-        return 'warning';
-      case 'inactive':
-        return 'error';
-      default:
-        return 'default';
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'sports' ? [value] : value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post(
+        'https://turf-backend-7yqk.onrender.com/turf-owner/addturf',
+        formData
+      );
+      setSuccessMessage('Turf added successfully!');
+      console.log(response.data);
+      handleCloseDialog();
+      fetchTurfs(); // refresh the turf list
+    } catch (error: any) {
+      setErrorMessage(
+        error.response?.data?.message || 'Failed to add turf. Please try again.'
+      );
+      console.error(error);
     }
   };
 
@@ -97,83 +129,84 @@ const TurfManagement: React.FC = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3}>
-        {turfs.map((turf) => (
-          <Grid item xs={12} sm={6} md={4} key={turf.id}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="h6">{turf.name}</Typography>
-                  <Box>
-                    <IconButton size="small" onClick={() => handleOpenDialog(turf)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton size="small" color="error">
-                      <DeleteIcon />
-                    </IconButton>
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <Grid container spacing={3}>
+          {turfs.map((turf) => (
+            <Grid item xs={12} sm={6} md={4} key={turf.turfId}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6">{turf.name}</Typography>
+                    <Box>
+                      <IconButton size="small" onClick={() => handleOpenDialog(turf)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton size="small" color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
                   </Box>
-                </Box>
-                <Typography color="textSecondary" gutterBottom>
-                  Type: {turf.type}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Capacity: {turf.capacity} players
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Price: ₹{turf.price}/hour
-                </Typography>
-                <Chip
-                  label={turf.status}
-                  color={getStatusColor(turf.status)}
-                  size="small"
-                  sx={{ mt: 1 }}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                  <Typography color="textSecondary" gutterBottom>
+                    Location: {turf.turfLocation}
+                  </Typography>
+                  <Typography color="textSecondary" gutterBottom>
+                    Sports:
+                  </Typography>
+                  {turf.sports.map((sport, idx) => (
+                    <Chip
+                      key={idx}
+                      label={sport}
+                      size="small"
+                      sx={{ mr: 0.5, mb: 0.5 }}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {selectedTurf ? 'Edit Turf' : 'Add New Turf'}
-        </DialogTitle>
+        <DialogTitle>{selectedTurf ? 'Edit Turf' : 'Add New Turf'}</DialogTitle>
         <DialogContent>
+          {successMessage && <Alert severity="success">{successMessage}</Alert>}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
           <TextField
-            autoFocus
             margin="dense"
             label="Turf Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
             fullWidth
-            variant="outlined"
-            defaultValue={selectedTurf?.name}
           />
           <TextField
             margin="dense"
-            label="Type"
+            label="Location"
+            name="turfLocation"
+            value={formData.turfLocation}
+            onChange={handleChange}
             fullWidth
-            variant="outlined"
-            defaultValue={selectedTurf?.type}
           />
           <TextField
             margin="dense"
-            label="Capacity"
-            type="number"
+            label="Sport Type"
+            name="sports"
+            value={formData.sports[0]}
+            onChange={handleChange}
+            select
             fullWidth
-            variant="outlined"
-            defaultValue={selectedTurf?.capacity}
-          />
-          <TextField
-            margin="dense"
-            label="Price per Hour"
-            type="number"
-            fullWidth
-            variant="outlined"
-            defaultValue={selectedTurf?.price}
-          />
+          >
+            <MenuItem value="Football">Football</MenuItem>
+            <MenuItem value="Cricket">Cricket</MenuItem>
+            <MenuItem value="Badminton">Badminton</MenuItem>
+          </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleCloseDialog}>
+          <Button variant="contained" onClick={handleSubmit}>
             {selectedTurf ? 'Save Changes' : 'Add Turf'}
           </Button>
         </DialogActions>
@@ -182,4 +215,4 @@ const TurfManagement: React.FC = () => {
   );
 };
 
-export default TurfManagement; 
+export default TurfManagement;
