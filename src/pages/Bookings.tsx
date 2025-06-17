@@ -99,7 +99,7 @@ const Bookings: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ width: '78vw', maxWidth: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">Bookings</Typography>
         <Tooltip title="Refresh bookings">
